@@ -53,8 +53,10 @@ FFMPEG_PATH = shutil.which("ffmpeg") or r"C:\ffmpeg\bin\ffmpeg.exe"
 SERVER_PORT = 5000               # el ESP32 se conecta aqui (abrirlo en el firewall de la VM)
 SERVER_BIND = os.getenv("CATRINA_BIND", "")   # "" = todas las redes; 127.0.0.1 para pruebas
 TOKEN_FILE = "token.txt"         # contraseña que comparte con el ESP32 (TOKEN en el .ino)
-HELLO_TIMEOUT = 5                # segundos para que una conexion nueva diga quien es
-SPK_WAIT = 5                     # segundos esperando a que el ESP32 abra la bocina
+# Con la tira LED (Bluetooth) el WiFi del ESP32 duerme entre beacons y el handshake
+# TLS tarda varios segundos: con 5 s el servidor se rendia antes de que llegara
+HELLO_TIMEOUT = 15               # segundos para que una conexion nueva diga quien es
+SPK_WAIT = 15                    # segundos esperando a que el ESP32 abra la bocina
 MIC_TIMEOUT = 5                  # el ESP32 manda audio sin parar: 5 s sin nada = conexion muerta
 
 # ---------- SIN SUPERVISION ----------

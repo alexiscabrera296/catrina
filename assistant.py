@@ -8,6 +8,9 @@ Este programa escucha en SERVER_PORT y el ESP32 se conecta (la VM no puede entra
 a la red de la casa). Cada conexion empieza con "CATRINA <token> <papel>\n":
   mic: el ESP32 manda el audio del microfono sin parar, PCM 16 kHz / 16 bit / mono
   ctl: recibe el estado de la tira LED ("pensando\n"...), "callar\n" y "hablar\n"
+  micctl: mic y ctl en una sola conexion (el audio sube, las lineas de ctl bajan).
+       La usa el firmware con tira LED: con el Bluetooth al ESP32 no le alcanza
+       la RAM para tres sesiones TLS a la vez
   spk: la abre el ESP32 al recibir "hablar"; trae el audio de la respuesta y se
        cierra al terminar
 
@@ -249,20 +252,25 @@ class Esp32Link:
             return
         role, extra = parts[2], parts[3] if len(parts) > 3 else ""
         conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-        if role == "mic":
+        if role in ("mic", "micctl"):
+            if role == "micctl":
+                self._set_ctl(conn)      # el tope de tiempo lo pone MicStream
             self.on_mic(conn, rest, addr, extra)
         elif role == "ctl":
-            with self.ctl_lock:
-                if self.ctl:
-                    self.ctl.close()
-                conn.settimeout(2)
-                self.ctl = conn
+            conn.settimeout(2)
+            self._set_ctl(conn)
         elif role == "spk":
             conn.settimeout(10)
             self.speakers.put(conn)
         else:
             print(f"(conexion de {addr[0]} con papel desconocido: {role})")
             conn.close()
+
+    def _set_ctl(self, conn):
+        with self.ctl_lock:
+            if self.ctl:
+                self.ctl.close()
+            self.ctl = conn
 
     def send_ctl(self, line):
         """Manda una linea al ESP32 ("pensando", "callar"...). False si no hay conexion."""

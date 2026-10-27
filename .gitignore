@@ -1,0 +1,10 @@
+# secretos: nunca a GitHub
+apikey*.txt
+token.txt
+
+# se generan solos
+catrina.log
+catrina.log.old
+respuestas.json.tmp
+__pycache__/
+*.pyc

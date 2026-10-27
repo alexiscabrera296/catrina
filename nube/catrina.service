@@ -1,0 +1,18 @@
+[Unit]
+Description=Catrina (asistente de voz del ESP32)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=catrina
+WorkingDirectory=/opt/catrina
+# la VM esta en UTC: sin esto el modo nocturno y la fecha que se le da a Gemini salen mal
+Environment=TZ=America/Mexico_City
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/catrina/venv/bin/python assistant.py
+# si se cierra (error o el watchdog la reinicia), se vuelve a abrir sola
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
